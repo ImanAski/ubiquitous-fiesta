@@ -30,7 +30,11 @@ class CustomersController extends Controller
      */
     public function store(StoreCustomersRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        $customer = Customers::create($data);
+
+        return response()->json([]);
     }
 
     /**
@@ -38,7 +42,7 @@ class CustomersController extends Controller
      */
     public function show(Customers $customers)
     {
-        //
+        return new CustomerResource($customers);
     }
 
     /**

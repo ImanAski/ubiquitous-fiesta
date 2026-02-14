@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCurrencyRequest;
 use App\Http\Requests\UpdateCurrencyRequest;
+use App\Http\Resources\ClientResource;
 use App\Http\Resources\CurrencyResource;
 use App\Models\Currency;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -19,19 +20,19 @@ class CurrencyController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): void
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCurrencyRequest $request): void
+    public function store(StoreCurrencyRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        $currency = Currency::create($data);
+
+        return response()->json([
+            'data' => new ClientResource($currency),
+            'message' => __('The new currency has been created'),
+            'status' => 201
+        ]);
     }
 
     /**

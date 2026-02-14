@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('currencies', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->string('code')->unique();
-            $table->string('symbol')->unique();
-            $table->timestamps();
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->foreignId('wallet_id')->constrained()->onDelete('cascade');
         });
     }
 
@@ -25,6 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('currencies');
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->dropForeign(['wallet_id']);
+            $table->dropColumn('wallet_id');
+        });
     }
 };
