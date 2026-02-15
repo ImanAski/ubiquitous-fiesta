@@ -41,12 +41,14 @@ test('it can verify a valid OTP', function () {
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $this->token,
     ])->postJson('/api/otp/verify', [
-        'identifier' => 'user@example.com',
-        'token' => $code
+        'otp_code' => $code
     ]);
 
     $response->assertStatus(201)
-        ->assertJson(['message' => 'OTP verified successfully']);
+        ->assertJson([
+            'message' => 'OTP verified successfully',
+            'identifier' => 'user@example.com'
+        ]);
 
     $otp = Otp::where('identifier', 'user@example.com')->first();
     expect($otp->valid)->toBeFalse();
@@ -63,8 +65,7 @@ test('it rejects an invalid OTP', function () {
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $this->token,
     ])->postJson('/api/otp/verify', [
-        'identifier' => 'user@example.com',
-        'token' => '654321'
+        'otp_code' => '654321'
     ]);
 
     $response->assertStatus(422)
@@ -83,8 +84,7 @@ test('it rejects an expired OTP', function () {
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $this->token,
     ])->postJson('/api/otp/verify', [
-        'identifier' => 'user@example.com',
-        'token' => $code
+        'otp_code' => $code
     ]);
 
     $response->assertStatus(422);

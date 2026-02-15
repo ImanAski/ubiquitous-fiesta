@@ -1,0 +1,226 @@
+openapi: 3.0.0
+info:
+  title: Wallet API
+  description: API for managing wallets, transactions, and OTP authentication.
+  version: 1.0.0
+servers:
+  - url: http://localhost/api
+    description: Local server
+components:
+  securitySchemes:
+    clientToken:
+      type: http
+      scheme: bearer
+      description: Enter your Client Token (ULID)
+    xClientToken:
+      type: apiKey
+      in: header
+      name: X-Client-Token
+      description: Alternative header for Client Token
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: integer
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        type:
+          type: string
+          enum: [credit, debit, system]
+        wallet_id:
+          type: integer
+        currency_id:
+          type: integer
+        from_customer_id:
+          type: integer
+        to_customer_id:
+          type: integer
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        metadata:
+          type: object
+    Currency:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+        symbol:
+          type: string
+security:
+  - clientToken: []
+  - xClientToken: []
+paths:
+  /otp/create:
+    post:
+      tags:
+        - OTP
+      summary: Request a new OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifier
+              properties:
+                identifier:
+                  type: string
+                  example: user@example.com
+      responses:
+        '200':
+          description: OTP generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_in:
+                    type: string
+  /otp/verify:
+    post:
+      tags:
+        - OTP
+      summary: Verify an OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp_code
+              properties:
+                otp_code:
+                  type: string
+                  example: "123456"
+      responses:
+        '201':
+          description: Verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  identifier:
+                    type: string
+        '422':
+          description: Invalid or expired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /transactions/pay:
+    post:
+      tags:
+        - Transactions
+      summary: Pay from wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_id
+                - amount
+              properties:
+                wallet_id:
+                  type: integer
+                amount:
+                  type: integer
+      responses:
+        '200':
+          description: Success
+  /transactions/charge:
+    post:
+      tags:
+        - Transactions
+      summary: Generate a charge link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_id
+                - amount
+                - callback_url
+              properties:
+                wallet_id:
+                  type: integer
+                amount:
+                  type: integer
+                callback_url:
+                  type: string
+                  format: url
+      responses:
+        '200':
+          description: Link generated
+  /transactions/transfer:
+    post:
+      tags:
+        - Transactions
+      summary: Transfer between wallets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from_wallet_id
+                - to_wallet_id
+                - amount
+              properties:
+                from_wallet_id:
+                  type: integer
+                to_wallet_id:
+                  type: integer
+                amount:
+                  type: integer
+      responses:
+        '200':
+          description: Success
+  /users/find:
+    get:
+      tags:
+        - Customers
+      summary: Find customer by metadata
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: exact
+          in: query
+          schema:
+             type: boolean
+      responses:
+        '200':
+          description: Customer found

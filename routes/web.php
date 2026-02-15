@@ -12,3 +12,7 @@ Route::get('set-locale/{locale}', function ($locale) {
     }
     return back();
 })->name('set-locale');
+
+Route::get('/docs', function () {
+    return view('swagger');
+})->name('api.docs');

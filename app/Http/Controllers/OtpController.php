@@ -26,18 +26,29 @@ class OtpController extends Controller
     {
         $data = $request->validated();
 
-        $otp = Otp::where('identifier', $data['identifier'])
-            ->where('valid', true)
+        $otps = Otp::where('valid', true)
+            ->where('expires_at', '>', now())
             ->latest()
-            ->first();
+            ->get();
 
-        if (!$otp || !$otp->isValid($data['token'])) {
+        $verifiedOtp = null;
+        foreach ($otps as $otp) {
+            if ($otp->isValid($data['otp_code'])) {
+                $verifiedOtp = $otp;
+                break;
+            }
+        }
+
+        if (!$verifiedOtp) {
             return response()->json(['message' => 'Invalid or expired OTP'], 422);
         }
 
         // Invalidate the token after use
-        $otp->update(['valid' => false]);
+        $verifiedOtp->update(['valid' => false]);
 
-        return response()->json(['message' => 'OTP verified successfully'], 201);
+        return response()->json([
+            'message' => 'OTP verified successfully',
+            'identifier' => $verifiedOtp->identifier,
+        ], 201);
     }
 }
