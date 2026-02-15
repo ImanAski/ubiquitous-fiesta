@@ -19,7 +19,25 @@ class CurrencyResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Business';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Business');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('Currency');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Currencies');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Currencies');
+    }
 
     public static function form(Form $form): Form
     {

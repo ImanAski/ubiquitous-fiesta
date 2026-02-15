@@ -19,7 +19,25 @@ class WalletResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Business';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Business');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('Wallet');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Wallets');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Wallets');
+    }
 
     public static function form(Form $form): Form
     {
