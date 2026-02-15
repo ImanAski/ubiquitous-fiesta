@@ -15,7 +15,12 @@ class Transaction extends Model
 
     protected $fillable = [
         'amount',
-        'status'
+        'status',
+        'type',
+        'from_customer_id',
+        'to_customer_id',
+        'currency_id',
+        'wallet_id',
     ];
 
     protected function casts(): array

@@ -9,15 +9,14 @@ class Wallet extends Model
 {
     protected $fillable =
         [
-            "status",
-            "type",
             "balance",
-            "customer_id"
+            "customer_id",
+            "currency_id"
         ];
 
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(Customers::class);
+        return $this->belongsTo(Customers::class, 'customer_id');
     }
 
     public function currency(): BelongsTo

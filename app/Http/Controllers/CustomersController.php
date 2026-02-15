@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCustomersRequest;
 use App\Http\Requests\UpdateCustomersRequest;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customers;
+use Illuminate\Http\Request;
 
 class CustomersController extends Controller
 {
@@ -23,6 +24,23 @@ class CustomersController extends Controller
     public function create()
     {
         //
+    }
+
+    public function findCustomer(Request $request)
+    {
+        $request->validate([
+            'key' => 'required|string',
+            'value' => 'required',
+            'exact' => 'sometimes|boolean'
+        ]);
+
+        $customer = Customers::searchMetadata(
+            $request->input('key'),
+            $request->input('value'),
+            $request->boolean('exact', true)
+        )->firstOrFail();
+
+        return new CustomerResource($customer);
     }
 
     /**

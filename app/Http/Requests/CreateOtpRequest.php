@@ -22,7 +22,7 @@ class CreateOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'identifier' => 'required|string'
         ];
     }
 }

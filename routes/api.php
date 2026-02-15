@@ -8,15 +8,13 @@ use App\Http\Middleware\EnsureClientToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::apiResource("currencies", CurrencyController::class);
-Route::apiResource("clients", ClientController::class);
-
-Route::middleware(EnsureClientToken::class)->name("client.")->group(function () {
+Route::middleware('client.token')->name("client.")->group(function () {
     Route::name("otp.")->prefix("otp")->group(function () {
         Route::post("create", [OtpController::class, 'create'])->name("create");
         Route::post("verify", [OtpController::class, 'verify'])->name("verify");
     });
     Route::apiResource("currencies", CurrencyController::class);
+    Route::get("users/find", [CustomersController::class, 'findCustomer'])->name("users.find");
     Route::apiResource("users", CustomersController::class);
     Route::apiResource("clients", ClientController::class);
 });

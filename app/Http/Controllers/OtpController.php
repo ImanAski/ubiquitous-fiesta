@@ -10,27 +10,34 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OtpController extends Controller
 {
-    public function create(CreateOtpRequest $request) {
+    public function create(CreateOtpRequest $request)
+    {
         $data = $request->validated();
 
-        $code = Otp::generate();
+        $code = Otp::generate($data['identifier']);
 
         return response()->json([
             'token' => $code,
             'expires_in' => now()->addMinutes(5),
         ]);
     }
-    public function verify(VerifyOtpRequest $request) {
+
+    public function verify(VerifyOtpRequest $request)
+    {
         $data = $request->validated();
 
-        $otp = Otp::query()->where('token', $data['token']);
+        $otp = Otp::where('identifier', $data['identifier'])
+            ->where('valid', true)
+            ->latest()
+            ->first();
 
-        if (!$otp || !$otp->isValid($data->token)) {
+        if (!$otp || !$otp->isValid($data['token'])) {
             return response()->json(['message' => 'Invalid or expired OTP'], 422);
         }
 
-        $otp->delete();
+        // Invalidate the token after use
+        $otp->update(['valid' => false]);
 
-        return response()->json()->status(201);
+        return response()->json(['message' => 'OTP verified successfully'], 201);
     }
 }

@@ -2,13 +2,15 @@
 
 namespace App\Enums;
 
-enum TransactionStatus: int
+use Filament\Support\Contracts\HasLabel;
+
+enum TransactionStatus: int implements HasLabel
 {
     case PENDING = 0;
     case COMPLETED = 1;
     case FAILED = 2;
 
-    public function label(): string
+    public function getLabel(): ?string
     {
         return match ($this) {
             self::PENDING => 'Pending',

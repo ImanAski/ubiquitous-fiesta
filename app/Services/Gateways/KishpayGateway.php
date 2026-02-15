@@ -23,7 +23,7 @@ class KishpayGateway implements PaymentGatewayContract
      * @inheritDoc
      * @throws Exception
      */
-    public function generateLink(int $amount, string $currency, array $meta): string
+    public function generateLink(int $amount, Currency $currency, array $meta): string
     {
         $envelope = $this->getEnvelope($amount);
 

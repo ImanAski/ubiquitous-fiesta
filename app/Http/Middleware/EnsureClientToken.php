@@ -15,7 +15,12 @@ class EnsureClientToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // TODO: adding token verification
+        $token = $request->bearerToken() ?? $request->header('X-Client-Token');
+
+        if (!$token || !\App\Models\Client::where('token', $token)->exists()) {
+            return response()->json(['message' => 'Unauthorized Client'], 401);
+        }
+
         return $next($request);
     }
 }

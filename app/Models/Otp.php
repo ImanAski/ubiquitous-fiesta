@@ -8,26 +8,40 @@ use Illuminate\Support\Facades\Hash;
 
 class Otp extends Model
 {
-    public $fillable = [
+    protected $fillable = [
+        'identifier',
         'token',
+        'valid',
         'expires_at'
     ];
 
-    public static function generate(): int {
+    protected $casts = [
+        'valid' => 'boolean',
+        'expires_at' => 'datetime'
+    ];
+
+    public static function generate(string $identifier): int
+    {
+        // Invalidate previous OTPs for this identifier
+        self::where('identifier', $identifier)->where('valid', true)->update(['valid' => false]);
+
         $code = rand(100000, 999999);
 
-        self::query()->updateOrCreate(
-            [
-                'token' => Hash::make($code),
-                'expires_at' => Carbon::now()->addMinutes(5)
-            ]
-        );
+        self::create([
+            'identifier' => $identifier,
+            'token' => Hash::make($code),
+            'valid' => true,
+            'expires_at' => Carbon::now()->addMinutes(5)
+        ]);
 
         return $code;
     }
 
-    public function isValid(string $code): bool {
-        return Hash::check($code, $this->token) && !Carbon::now()->isAfter($this->expires_at);
+    public function isValid(string $code): bool
+    {
+        return $this->valid &&
+               !Carbon::now()->isAfter($this->expires_at) &&
+               Hash::check($code, $this->token);
     }
 
 }
