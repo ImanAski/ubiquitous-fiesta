@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     locales \
+    libicu-dev \
     zip \
     jpegoptim optipng pngquant gifsicle \
     vim \
@@ -25,6 +26,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl
+
+RUN docker-php-ext-configure intl \
+    && docker-php-ext-install intl
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
