@@ -18,10 +18,10 @@ test('it can find a customer by exact metadata', function () {
 
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $this->token,
-    ])->getJson('/api/users/find?key=external_id&value=cust_123');
+    ])->getJson('/api/users?filters[external_id]=cust_123');
 
     $response->assertStatus(200)
-        ->assertJsonPath('data.metadata.external_id', 'cust_123');
+        ->assertJsonPath('data.0.metadata.external_id', 'cust_123');
 });
 
 test('it returns 404 when customer is not found', function () {
@@ -39,17 +39,85 @@ test('it can find a customer using partial match', function () {
 
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $this->token,
-    ])->getJson('/api/users/find?key=name&value=John&exact=0');
+    ])->getJson('/api/users?filters[name]=John&exact=0');
 
     $response->assertStatus(200)
-        ->assertJsonPath('data.metadata.name', 'John Doe');
+        ->assertJsonPath('data.0.metadata.name', 'John Doe');
 });
 
-test('it validates required search parameters', function () {
+test('get all users', function () {
+
+    Customers::factory(10)->create();
+
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $this->token,
-    ])->getJson('/api/users/find?key=name');
+    ])->getJson('/api/users');
 
-    $response->assertStatus(422)
-        ->assertJsonValidationErrors(['value']);
+    $response->assertStatus(200)
+        ->assertJsonCount(10, 'data');
+});
+
+test('get 5 users', function () {
+    Customers::factory(10)->create();
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->getJson('/api/users?limit=5');
+
+    $response->assertStatus(200)
+        ->assertJsonCount(5, 'data');
+});
+
+test('get users with 7 limit and second page', function () {
+    Customers::factory(10)->create();
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->getJson('/api/users?limit=7&page=2');
+
+    $response->assertStatus(200)
+        ->assertJsonCount(3, 'data')
+        ->assertJsonPath('meta.current_page', 2);
+});
+
+
+test('get a user', function () {
+    $customer = Customers::factory()->create();
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->getJson('/api/users/' . $customer->id);
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.id', $customer->id);
+});
+
+test('delete a user', function () {
+    $customer = Customers::create([]);
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->deleteJson("/api/users/$customer->id");
+
+    $response->assertStatus(204);
+});
+
+test('get user transactions', function () {
+    $customer = Customers::create([]);
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->getJson("/api/users/$customer->id/transactions");
+
+    $response->assertStatus(200);
+});
+
+test('get user wallets', function () {
+    $customer = Customers::create([]);
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->getJson("/api/users/$customer->id/wallets");
+
+    $response->assertStatus(200);
 });

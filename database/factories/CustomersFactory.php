@@ -17,7 +17,10 @@ class CustomersFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'metadata' => [
+                'email' => fake()->email,
+                'name' => fake()->name,
+            ],
         ];
     }
 }

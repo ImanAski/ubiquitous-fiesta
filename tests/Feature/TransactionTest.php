@@ -150,3 +150,13 @@ test('it fails to generate charge link with invalid data', function () {
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['wallet_id', 'amount', 'callback_url']);
 });
+
+test('get transactions', function () {
+    Transaction::factory(10);
+
+    $response = $this->withHeaders([
+        'Authorization' => 'Bearer ' . $this->token,
+    ])->getJson('/api/transactions');
+
+    $response->assertStatus(200);
+});

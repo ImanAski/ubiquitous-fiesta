@@ -6,10 +6,12 @@ use App\Http\Requests\ChargeRequest;
 use App\Http\Requests\PayRequest;
 use App\Http\Requests\TransferRequest;
 use App\Http\Resources\TransactionResource;
+use App\Models\Customers;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Services\Gateways\KishpayGateway;
 use App\Services\PaymentService;
+use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -18,9 +20,13 @@ class TransactionController extends Controller
         protected KishpayGateway $kishpayGateway
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        return TransactionResource::collection(Transaction::all());
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+
+        $paginated = Transaction::paginate($limit, ['*'], 'page', $page);
+        return TransactionResource::collection($paginated);
     }
 
     public function show(Transaction $transaction)

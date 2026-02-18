@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomersRequest;
 use App\Http\Requests\UpdateCustomersRequest;
 use App\Http\Resources\CustomerResource;
+use App\Http\Resources\TransactionResource;
 use App\Models\Customers;
 use Illuminate\Http\Request;
 
@@ -13,9 +14,21 @@ class CustomersController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return CustomerResource::collection(Customers::all());
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+
+        $query = Customers::query();
+
+        if ($request->has('filters') && is_array($request->input('filters'))) {
+            foreach ($request->input('filters') as $key => $value) {
+                $query->searchMetadata($key, $value, $request->boolean('exact', true));
+            }
+        }
+
+        $paginated = $query->latest()->paginate($limit, ['*'], 'page', $page);
+        return CustomerResource::collection($paginated);
     }
 
     /**
@@ -26,21 +39,34 @@ class CustomersController extends Controller
         //
     }
 
-    public function findCustomer(Request $request)
+    public function wallets(Request $request, Customers $customer)
     {
-        $request->validate([
-            'key' => 'required|string',
-            'value' => 'required',
-            'exact' => 'sometimes|boolean'
-        ]);
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
 
-        $customer = Customers::searchMetadata(
-            $request->input('key'),
-            $request->input('value'),
-            $request->boolean('exact', true)
-        )->firstOrFail();
+        $paginated = $customer->wallets()
+            ->latest()
+            ->paginate($limit, ['*'], 'page', $page);
 
-        return new CustomerResource($customer);
+        return CustomerResource::collection($paginated);
+    }
+
+    /**
+     * @param Request $request
+     * @param Customers $customer
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function transactions(Request $request, Customers $customer)
+    {
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+
+
+        $transactions = $customer->transactions()
+            ->latest()
+            ->paginate($limit, ['*'], 'page', $page);
+
+        return TransactionResource::collection($transactions);
     }
 
     /**
@@ -52,15 +78,17 @@ class CustomersController extends Controller
 
         $customer = Customers::create($data);
 
-        return response()->json([]);
+        return response()->json([
+            'user' => $customer
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Customers $customers)
+    public function show(Customers $customer)
     {
-        return new CustomerResource($customers);
+        return new CustomerResource($customer);
     }
 
     /**
@@ -84,6 +112,8 @@ class CustomersController extends Controller
      */
     public function destroy(Customers $customers)
     {
-        //
+        $customers->delete();
+
+        return response()->json(null, 204);
     }
 }

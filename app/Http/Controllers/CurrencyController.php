@@ -7,16 +7,20 @@ use App\Http\Requests\UpdateCurrencyRequest;
 use App\Http\Resources\ClientResource;
 use App\Http\Resources\CurrencyResource;
 use App\Models\Currency;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Request;
 
 class CurrencyController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return CurrencyResource::collection(Currency::all());
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+
+        $paginated = Currency::paginate($limit, ['*'], 'page', $page);
+        return CurrencyResource::collection($paginated);
     }
 
     /**
@@ -62,8 +66,10 @@ class CurrencyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Currency $currency): void
+    public function destroy(Currency $currency)
     {
-        //
+        $currency->delete();
+
+        return response()->json(null, 204);
     }
 }

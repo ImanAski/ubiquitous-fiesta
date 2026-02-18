@@ -4,7 +4,7 @@ info:
   description: API for managing wallets, transactions, and OTP authentication.
   version: 1.0.0
 servers:
-  - url: http://localhost/api
+  - url: http://localhost:8000/api
     description: Local server
 components:
   securitySchemes:
@@ -128,6 +128,28 @@ paths:
                 properties:
                   message:
                     type: string
+  /trasnactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get all transactions
+      responses:
+        '200':
+          description: List of transactions
+        '401':
+          description: Not provided the auth token in header
+  /transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      summary: Get a transaction
+      responses:
+        '200':
+          description: Transaction found
+        '401':
+          description: Not provided the auth token in header
+        '404':
+          description: Transaction not found
   /transactions/pay:
     post:
       tags:
@@ -201,26 +223,153 @@ paths:
       responses:
         '200':
           description: Success
-  /users/find:
+  /currencies:
     get:
       tags:
-        - Customers
-      summary: Find customer by metadata
+        - Currencies
+      summary: Get all currencies
+      responses:
+        '200':
+          description: List of currencies
+        '401':
+          description: Not provided the auth token in header
+  /currencies/{id}:
+    get:
+      tags:
+        - Currencies
+      summary: Get a specific currency
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of currencies
+        '404':
+          description: Currency not found
+        '401':
+          description: Not provided the auth token in header
+  /gateways:
+    get:
+      tags:
+        - Gateways
+      summary: Get all gateways
+      responses:
+        '200':
+          description: List of gateways
+        '401':
+          description: Not provided the auth token in header
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users
       parameters:
         - name: key
           in: query
-          required: true
+          required: false
           schema:
             type: string
         - name: value
           in: query
-          required: true
+          required: false
           schema:
             type: string
         - name: exact
           in: query
           schema:
-             type: boolean
+            type: boolean
       responses:
         '200':
-          description: Customer found
+          description: List of users
+        '401':
+          description: Not provided the auth token in header
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  type: object
+                  description: Arbitrary key-value pairs
+                  additionalProperties: true
+                  exmaple:
+                    priority: high
+                    email: test@test.com
+                    tags: ["laravel", "api"]
+      responses:
+        '200':
+          description: Successfully created a new customer
+        '401':
+          description: Not provided the auth token in header
+  /users/{id}/wallets:
+    get:
+      tags:
+        - Users
+      summary: Get user's wallets
+      parameters:
+        - name: id
+          required: true
+          in: path
+      responses:
+        '200':
+          description: List of paginated user's wallets
+        '404':
+          description: User not found
+        '401':
+          description: Not provided the auth token in header
+  /users/{id}/transactions:
+    get:
+      tags:
+        - Users
+      summary: Get user's transactions
+      parameters:
+        - name: id
+          required: true
+          in: path
+      responses:
+        '200':
+          description: List of paginated user's transactions
+        '404':
+          description: User not found
+        '401':
+          description: Not provided the auth token in header
+  /users/{id}:
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: delete a user
+    get:
+      tags:
+        - Users
+      summary: Get a specific user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User found
+        '404':
+          description: User not found
+        '401':
+          description: Not provided the auth token in header
